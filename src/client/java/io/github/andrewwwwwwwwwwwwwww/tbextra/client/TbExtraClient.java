@@ -17,6 +17,10 @@ public class TbExtraClient implements ClientModInitializer {
     @SuppressWarnings("deprecation")
     @Override
     public void onInitializeClient() {
+        // Every "main" entrypoint has run by now, so Traveler's Backpack is initialised
+        // and its block entity type can safely accept our blocks.
+        TbExtra.linkBlockEntityType();
+
         // Our own item model type, registered the same way Traveler's Backpack registers its.
         ItemModels.ID_MAPPER.put(TbExtra.id("backpack"), BackpackItemModel.Unbaked.MAP_CODEC);
 
