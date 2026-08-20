@@ -93,4 +93,16 @@ public final class BackpackGeometry {
         consumer.accept(min);
         consumer.accept(max);
     }
+
+    /** Midpoint of the model, used to centre it on the origin for item rendering. */
+    public Vector3f centre() {
+        return new Vector3f((min.x + max.x) * 0.5F, (min.y + max.y) * 0.5F, (min.z + max.z) * 0.5F);
+    }
+
+    /** Extents relative to the centre, matching how the item renderer draws it. */
+    public void centredExtents(Consumer<Vector3fc> consumer) {
+        Vector3f c = centre();
+        consumer.accept(new Vector3f(min).sub(c));
+        consumer.accept(new Vector3f(max).sub(c));
+    }
 }

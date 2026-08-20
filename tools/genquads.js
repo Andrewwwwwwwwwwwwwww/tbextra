@@ -17,7 +17,16 @@ const SRC=process.argv[2];
 const OUT=path.join(__dirname,'..','src','main','resources','assets','tbextra','geometry');
 
 for(const m of MODELS){
-  const quads=readGltf(path.join(SRC,m.dir,m.gltf));
+  // Flat (zero-thickness) cubes contribute four zero-area side faces that draw nothing.
+  const area=q=>{
+    const sub=(a,c)=>[a[0]-c[0],a[1]-c[1],a[2]-c[2]];
+    const e1=sub(q.pos[1],q.pos[0]), e2=sub(q.pos[2],q.pos[1]);
+    const cx=[e1[1]*e2[2]-e1[2]*e2[1], e1[2]*e2[0]-e1[0]*e2[2], e1[0]*e2[1]-e1[1]*e2[0]];
+    return Math.hypot(...cx);
+  };
+  const raw=readGltf(path.join(SRC,m.dir,m.gltf));
+  const quads=raw.filter(q=>area(q)>1e-9);
+  if(raw.length!==quads.length) console.log(`  (dropped ${raw.length-quads.length} zero-area faces from flat cubes)`);
   const all=quads.flatMap(q=>q.pos);
   const bounds=[0,1,2].map(a=>[Math.min(...all.map(p=>p[a])),Math.max(...all.map(p=>p[a]))]);
   const heightPx=(bounds[1][1]-bounds[1][0])*16;

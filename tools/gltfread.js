@@ -39,12 +39,19 @@ function readGltf(file){
         const uv=read(g,buf,prim.attributes.TEXCOORD_0);
         const nrm=prim.attributes.NORMAL?read(g,buf,prim.attributes.NORMAL).map(n=>norm(applyDir(world,n))):null;
         const idx=read(g,buf,prim.indices);
-        // Blockbench emits two triangles per face, sharing four vertices
+        // Blockbench emits two triangles per face sharing an edge, e.g. [0,2,1] + [2,3,1].
+        // Rebuild the quad by walking the first triangle from its unshared vertex and
+        // splicing the second triangle's unshared vertex in across the shared edge, which
+        // preserves the original winding.
         for(let t=0;t+5<idx.length;t+=6){
           const tri=idx.slice(t,t+6);
-          const ring=[tri[0],tri[1],tri[2],tri[5]];
+          const A=tri.slice(0,3), B=tri.slice(3,6);
           const uniq=new Set(tri);
           if(uniq.size!==4) continue;
+          const d=B.find(v=>!A.includes(v));
+          const ui=A.findIndex(v=>!B.includes(v));
+          if(d===undefined||ui<0) continue;
+          const ring=[A[ui], A[(ui+1)%3], d, A[(ui+2)%3]];
           const P=ring.map(v=>pos[v]);
           let N=nrm?nrm[ring[0]]:null;
           if(!N){

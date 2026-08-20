@@ -34,20 +34,21 @@ public class BackpackItemModel implements ItemModel {
     }
 
     /**
-     * The geometry sits on y=0 centred on X/Z, so each context lifts and scales it into place.
-     * Nudge these if a pack sits oddly in a particular view.
+     * Modelled on vanilla block item display defaults, which suit a chunky upright object.
+     * Translations are in blocks (vanilla model JSON states them in sixteenths).
+     * The renderer centres the geometry first, so these are pure presentation.
      */
     private static ItemTransform transformFor(ItemDisplayContext context) {
         return switch (context) {
-            case GUI -> transform(30.0F, 225.0F, 0.0F, 0.0F, -0.15F, 0.0F, 1.0F);
-            case GROUND -> transform(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
-            case FIXED -> transform(0.0F, 180.0F, 0.0F, 0.0F, -0.15F, 0.0F, 1.0F);
-            case HEAD -> transform(0.0F, 180.0F, 0.0F, 0.0F, 0.3F, 0.0F, 1.2F);
-            case THIRD_PERSON_RIGHT_HAND, THIRD_PERSON_LEFT_HAND ->
-                    transform(0.0F, 0.0F, 0.0F, 0.0F, 0.1F, 0.0F, 0.7F);
-            case FIRST_PERSON_RIGHT_HAND, FIRST_PERSON_LEFT_HAND ->
-                    transform(0.0F, 135.0F, 0.0F, 0.0F, 0.1F, 0.0F, 0.7F);
-            default -> transform(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
+            case GUI -> transform(30.0F, 225.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.625F);
+            case GROUND -> transform(0.0F, 0.0F, 0.0F, 0.0F, 0.1875F, 0.0F, 0.25F);
+            case FIXED -> transform(0.0F, 180.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
+            case HEAD -> transform(0.0F, 180.0F, 0.0F, 0.0F, 0.25F, 0.0F, 1.0F);
+            case THIRD_PERSON_RIGHT_HAND -> transform(0.0F, 45.0F, 0.0F, 0.0F, 0.15625F, 0.0F, 0.4F);
+            case THIRD_PERSON_LEFT_HAND -> transform(0.0F, 225.0F, 0.0F, 0.0F, 0.15625F, 0.0F, 0.4F);
+            case FIRST_PERSON_RIGHT_HAND -> transform(0.0F, 45.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.4F);
+            case FIRST_PERSON_LEFT_HAND -> transform(0.0F, 225.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.4F);
+            default -> ItemTransform.NO_TRANSFORM;
         };
     }
 
