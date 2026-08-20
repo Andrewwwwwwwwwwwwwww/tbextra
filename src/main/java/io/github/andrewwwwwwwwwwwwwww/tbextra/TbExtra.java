@@ -1,6 +1,5 @@
 package io.github.andrewwwwwwwwwwwwwww.tbextra;
 
-import com.tiviacz.travelersbackpack.block.TravelersBackpackBlock;
 import com.tiviacz.travelersbackpack.init.ModBlockEntityTypes;
 import com.tiviacz.travelersbackpack.init.ModItemGroups;
 import com.tiviacz.travelersbackpack.item.TravelersBackpackItem;
@@ -81,10 +80,10 @@ public class TbExtra implements ModInitializer {
         ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, id(name));
 
         Block block = Registry.register(BuiltInRegistries.BLOCK, id(name),
-                new TravelersBackpackBlock(BlockBehaviour.Properties.of()
+                new ExtraBackpackBlock(BlockBehaviour.Properties.of()
                         .mapColor(color)
                         .sound(sound)
-                        .setId(blockKey)));
+                        .setId(blockKey), name));
 
         Registry.register(BuiltInRegistries.ITEM, id(name),
                 new TravelersBackpackItem(new Item.Properties().setId(itemKey), block));

@@ -1,13 +1,16 @@
 package io.github.andrewwwwwwwwwwwwwww.tbextra.client;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.andrewwwwwwwwwwwwwww.tbextra.BackpackBounds;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.ItemModel;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.resources.model.ResolvableModel;
 import net.minecraft.client.resources.model.cuboid.ItemTransform;
+import net.minecraft.client.resources.model.cuboid.ItemTransforms;
 import net.minecraft.world.entity.ItemOwner;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -20,51 +23,44 @@ import org.joml.Vector3f;
  */
 public class BackpackItemModel implements ItemModel {
     /**
-     * Worn on the back. Traveler's Backpack renders that through the item model with
-     * ItemDisplayContext.NONE and sets no item transform - its own BackpackModel positions
-     * the pack itself, assuming the geometry sits in block space like a block model. So we
-     * place ours the same way the block renderer does, and let TB do the positioning.
+     * Longest edge of Traveler's Backpack's own pack, in blocks. Each pack is scaled so its
+     * longest edge matches, so a wide pack does not tower over a narrow one in the inventory.
      */
-    private final BackpackSpecialRenderer worn;
+    private static final float REFERENCE_EDGE = 0.875F;
 
-    /** Every other view: item display expects the model centred on the origin. */
-    private final BackpackSpecialRenderer held;
+    private final BackpackSpecialRenderer renderer;
+    private final ItemTransforms transforms;
 
-    public BackpackItemModel(BackpackVariant variant) {
-        this.worn = new BackpackSpecialRenderer(variant, new Vector3f(0.5F, 0.0F, 0.5F));
-        Vector3f centre = variant.geometry().centre();
-        this.held = new BackpackSpecialRenderer(variant, centre.negate());
+    public BackpackItemModel(BackpackVariant variant, String backpack) {
+        this.renderer = new BackpackSpecialRenderer(variant);
+        this.transforms = createTransforms(REFERENCE_EDGE / BackpackBounds.of(backpack).longestEdge());
     }
 
     @Override
     public void update(ItemStackRenderState state, ItemStack stack, ItemModelResolver resolver,
                        ItemDisplayContext context, ClientLevel level, ItemOwner owner, int seed) {
         ItemStackRenderState.LayerRenderState layer = state.newLayer();
-        if (context == ItemDisplayContext.NONE) {
-            layer.setupSpecialModel(worn, null);
-        } else {
-            layer.setItemTransform(transformFor(context));
-            layer.setupSpecialModel(held, null);
-        }
+        layer.setUsesBlockLight(true);
+        // getTransform returns NO_TRANSFORM for ItemDisplayContext.NONE, which is what
+        // Traveler's Backpack uses for the worn pack - it positions that itself.
+        layer.setItemTransform(transforms.getTransform(context));
+        layer.setupSpecialModel(renderer, null);
     }
 
     /**
-     * Modelled on vanilla block item display defaults, which suit a chunky upright object.
-     * Translations are in blocks (vanilla model JSON states them in sixteenths).
-     * The renderer centres the geometry first, so these are pure presentation.
+     * Traveler's Backpack's own display transforms, so these packs sit the same way in the
+     * hand, inventory and item frames as the ones players already know. Scale is adjusted
+     * per pack; translations are in blocks.
      */
-    private static ItemTransform transformFor(ItemDisplayContext context) {
-        return switch (context) {
-            case GUI -> transform(30.0F, 225.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.625F);
-            case GROUND -> transform(0.0F, 0.0F, 0.0F, 0.0F, 0.1875F, 0.0F, 0.25F);
-            case FIXED -> transform(0.0F, 180.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
-            case HEAD -> transform(0.0F, 180.0F, 0.0F, 0.0F, 0.25F, 0.0F, 1.0F);
-            case THIRD_PERSON_RIGHT_HAND -> transform(0.0F, 45.0F, 0.0F, 0.0F, 0.15625F, 0.0F, 0.4F);
-            case THIRD_PERSON_LEFT_HAND -> transform(0.0F, 225.0F, 0.0F, 0.0F, 0.15625F, 0.0F, 0.4F);
-            case FIRST_PERSON_RIGHT_HAND -> transform(0.0F, 45.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.4F);
-            case FIRST_PERSON_LEFT_HAND -> transform(0.0F, 225.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.4F);
-            default -> ItemTransform.NO_TRANSFORM;
-        };
+    private static ItemTransforms createTransforms(float scale) {
+        ItemTransform thirdPerson = transform(60.0F, -180.0F, 0.0F, 0.0F, 0.09375F, 0.03125F, 0.7F * scale);
+        ItemTransform firstPerson = transform(0.0F, -90.0F, 12.5F, 0.070625F, 0.375F, 0.125F, 0.68F * scale);
+        ItemTransform head = transform(0.0F, 180.0F, 0.0F, 0.0F, 0.90625F, 0.0F, scale);
+        ItemTransform gui = transform(30.0F, -38.0F, 0.0F, -0.015625F, 0.140625F, 0.0F, scale);
+        ItemTransform ground = transform(0.0F, 0.0F, 0.0F, 0.0F, 0.125F, 0.0F, 0.5F * scale);
+        ItemTransform fixed = transform(0.0F, 180.0F, 0.0F, 0.0F, 0.140625F, 0.0F, scale);
+        return new ItemTransforms(thirdPerson, thirdPerson, firstPerson, firstPerson,
+                head, gui, ground, fixed, fixed);
     }
 
     private static ItemTransform transform(float rotX, float rotY, float rotZ,
@@ -75,11 +71,11 @@ public class BackpackItemModel implements ItemModel {
                 new Vector3f(scale, scale, scale));
     }
 
-    /** The unbaked form parsed from assets/tbextra/items/<name>.json. */
+    /** The unbaked form parsed from assets/tbextra/items/&lt;name&gt;.json. */
     public record Unbaked(String backpack) implements ItemModel.Unbaked {
         public static final MapCodec<Unbaked> MAP_CODEC = RecordCodecBuilder.mapCodec(instance ->
                 instance.group(
-                        com.mojang.serialization.Codec.STRING.fieldOf("backpack").forGetter(Unbaked::backpack)
+                        Codec.STRING.fieldOf("backpack").forGetter(Unbaked::backpack)
                 ).apply(instance, Unbaked::new));
 
         @Override
@@ -89,7 +85,7 @@ public class BackpackItemModel implements ItemModel {
 
         @Override
         public ItemModel bake(ItemModel.BakingContext context, Matrix4fc transform) {
-            return new BackpackItemModel(BackpackVariant.of(backpack));
+            return new BackpackItemModel(BackpackVariant.of(backpack), backpack);
         }
 
         @Override
