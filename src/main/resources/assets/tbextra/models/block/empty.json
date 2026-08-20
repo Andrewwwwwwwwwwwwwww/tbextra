@@ -1,0 +1,6 @@
+{
+  "__comment": "Placed backpacks are drawn by BackpackBlockRenderer, so the blockstate model is intentionally empty.",
+  "textures": {
+    "particle": "minecraft:block/oak_planks"
+  }
+}

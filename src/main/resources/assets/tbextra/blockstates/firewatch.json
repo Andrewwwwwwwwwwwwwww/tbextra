@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "tbextra:block/empty" },
+    "facing=south": { "model": "tbextra:block/empty" },
+    "facing=east": { "model": "tbextra:block/empty" },
+    "facing=west": { "model": "tbextra:block/empty" }
+  }
+}

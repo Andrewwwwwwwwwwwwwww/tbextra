@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "tbextra",
+  "version": "${version}",
+  "name": "Traveler's Backpack Extras",
+  "description": "Adds new backpacks to Traveler's Backpack, using the mod's own inventory, upgrades and UI. Purely new models.",
+  "authors": ["Andrewwwwwwwwwwwwwww"],
+  "contact": {
+    "homepage": "https://github.com/Andrewwwwwwwwwwwwwww/tbextra",
+    "sources": "https://github.com/Andrewwwwwwwwwwwwwww/tbextra"
+  },
+  "license": "ARR",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["io.github.andrewwwwwwwwwwwwwww.tbextra.TbExtra"],
+    "client": ["io.github.andrewwwwwwwwwwwwwww.tbextra.client.TbExtraClient"]
+  },
+  "accessWidener": "tbextra.accesswidener",
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~26.2",
+    "java": ">=25",
+    "fabric-api": "*",
+    "travelersbackpack": ">=11.3.0"
+  }
+}

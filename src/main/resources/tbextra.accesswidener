@@ -1,0 +1,5 @@
+accessWidener	v1	official
+
+# Needed to register our own item model type ("tbextra:backpack"), the same way
+# Traveler's Backpack registers its own. Vanilla keeps this mapper private.
+accessible	field	net/minecraft/client/renderer/item/ItemModels	ID_MAPPER	Lnet/minecraft/util/ExtraCodecs$LateBoundIdMapper;
