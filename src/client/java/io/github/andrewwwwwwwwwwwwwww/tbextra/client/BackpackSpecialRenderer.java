@@ -13,18 +13,18 @@ import java.util.function.Consumer;
 /**
  * Draws a backpack wherever the item is shown - inventory, hand, dropped, and on the
  * player's back, since Traveler's Backpack renders the worn pack from the item model.
+ *
+ * The offset places the geometry in whichever space the caller expects; see
+ * {@link BackpackItemModel} for the two cases.
  */
-public record BackpackSpecialRenderer(BackpackVariant variant) implements SpecialModelRenderer<Void> {
+public record BackpackSpecialRenderer(BackpackVariant variant, Vector3f offset)
+        implements SpecialModelRenderer<Void> {
 
     @Override
     public void submit(Void argument, PoseStack poseStack, SubmitNodeCollector collector,
                        int light, int overlay, boolean hasFoil, int outlineColor) {
-        // The geometry sits on y=0 so it can be placed as a block. Item display expects the
-        // model centred on the origin, otherwise it hangs above wherever it is drawn.
-        Vector3f centre = variant.geometry().centre();
-
         poseStack.pushPose();
-        poseStack.translate(-centre.x, -centre.y, -centre.z);
+        poseStack.translate(offset.x, offset.y, offset.z);
         collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(variant.texture()),
                 (pose, consumer) -> variant.geometry().emit(pose, consumer, light, overlay));
         poseStack.popPose();
@@ -32,7 +32,7 @@ public record BackpackSpecialRenderer(BackpackVariant variant) implements Specia
 
     @Override
     public void getExtents(Consumer<Vector3fc> consumer) {
-        variant.geometry().centredExtents(consumer);
+        variant.geometry().extents(corner -> consumer.accept(new Vector3f(corner).add(offset)));
     }
 
     @Override

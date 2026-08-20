@@ -19,18 +19,33 @@ import org.joml.Vector3f;
  * the geometry comes from the baked quad list.
  */
 public class BackpackItemModel implements ItemModel {
-    private final BackpackSpecialRenderer renderer;
+    /**
+     * Worn on the back. Traveler's Backpack renders that through the item model with
+     * ItemDisplayContext.NONE and sets no item transform - its own BackpackModel positions
+     * the pack itself, assuming the geometry sits in block space like a block model. So we
+     * place ours the same way the block renderer does, and let TB do the positioning.
+     */
+    private final BackpackSpecialRenderer worn;
+
+    /** Every other view: item display expects the model centred on the origin. */
+    private final BackpackSpecialRenderer held;
 
     public BackpackItemModel(BackpackVariant variant) {
-        this.renderer = new BackpackSpecialRenderer(variant);
+        this.worn = new BackpackSpecialRenderer(variant, new Vector3f(0.5F, 0.0F, 0.5F));
+        Vector3f centre = variant.geometry().centre();
+        this.held = new BackpackSpecialRenderer(variant, centre.negate());
     }
 
     @Override
     public void update(ItemStackRenderState state, ItemStack stack, ItemModelResolver resolver,
                        ItemDisplayContext context, ClientLevel level, ItemOwner owner, int seed) {
         ItemStackRenderState.LayerRenderState layer = state.newLayer();
-        layer.setItemTransform(transformFor(context));
-        layer.setupSpecialModel(renderer, null);
+        if (context == ItemDisplayContext.NONE) {
+            layer.setupSpecialModel(worn, null);
+        } else {
+            layer.setItemTransform(transformFor(context));
+            layer.setupSpecialModel(held, null);
+        }
     }
 
     /**
