@@ -1,41 +1,42 @@
 package io.github.andrewwwwwwwwwwwwwww.tbextra.client;
 
 import com.tiviacz.travelersbackpack.init.ModBlockEntityTypes;
-import io.github.andrewwwwwwwwwwwwwww.tbextra.TbExtra;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
-import net.minecraft.client.renderer.item.ItemModels;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
-import org.jetbrains.annotations.Nullable;
 
 public class TbExtraClient implements ClientModInitializer {
+    private static final String TRAVELERS_BACKPACK = "travelersbackpack";
 
     // BlockEntityRendererRegistry is deprecated in Fabric API, but it is still the only
     // public way to attach a renderer to another mod's block entity type.
     @SuppressWarnings("deprecation")
     @Override
     public void onInitializeClient() {
-        // Every "main" entrypoint has run by now, so Traveler's Backpack is initialised
-        // and its block entity type can safely accept our blocks.
-        TbExtra.linkBlockEntityType();
+        ModelLoadingPlugin.register(context -> {
+            // Held and carried packs: swap in the skin's model when the stack has one.
+            context.modifyItemModelAfterBake().register((model, ctx) -> {
+                Identifier itemId = ctx.itemId();
+                return itemId != null && TRAVELERS_BACKPACK.equals(itemId.getNamespace())
+                        ? new SkinnedItemModel(model)
+                        : model;
+            });
 
-        // Our own item model type, registered the same way Traveler's Backpack registers its.
-        ItemModels.ID_MAPPER.put(TbExtra.id("backpack"), BackpackItemModel.Unbaked.MAP_CODEC);
+            // Placed packs: hide TB's block model for skinned packs so the block entity
+            // renderer can draw the skin in its place.
+            context.modifyBlockModelAfterBake().register((model, ctx) -> {
+                Block block = ctx.state().getBlock();
+                Identifier blockId = BuiltInRegistries.BLOCK.getKey(block);
+                return blockId != null && TRAVELERS_BACKPACK.equals(blockId.getNamespace())
+                        ? new SkinnedBlockStateModel(model)
+                        : model;
+            });
+        });
 
-        // Placed backpacks: TB has no block entity renderer of its own, so registering one
-        // against its type is free. We no-op for packs that are not ours.
-        BlockEntityRendererRegistry.register(ModBlockEntityTypes.BACKPACK, context -> new BackpackBlockRenderer());
-    }
-
-    /** The variant for one of our blocks, or null if this is not our backpack. */
-    @Nullable
-    public static BackpackVariant variantFor(Block block) {
-        if (!TbExtra.BACKPACKS.contains(block)) {
-            return null;
-        }
-        Identifier id = BuiltInRegistries.BLOCK.getKey(block);
-        return id == null ? null : BackpackVariant.of(id.getPath());
+        BlockEntityRendererRegistry.register(ModBlockEntityTypes.BACKPACK,
+                context -> new BackpackBlockRenderer());
     }
 }

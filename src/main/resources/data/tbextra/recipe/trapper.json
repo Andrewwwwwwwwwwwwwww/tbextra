@@ -1,16 +1,5 @@
 {
-  "type": "travelersbackpack:backpack_shaped",
-  "key": {
-    "A": "minecraft:leather",
-    "B": "minecraft:iron_ingot",
-    "C": "travelersbackpack:standard"
-  },
-  "pattern": [
-    "ABA",
-    "ACA",
-    "AAA"
-  ],
-  "result": {
-    "id": "tbextra:trapper"
-  }
+  "type": "tbextra:reskin",
+  "skin": "trapper",
+  "material": "minecraft:iron_ingot"
 }

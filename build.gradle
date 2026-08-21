@@ -22,8 +22,6 @@ loom {
 			sourceSet sourceSets.client
 		}
 	}
-
-	accessWidenerPath = file("src/main/resources/tbextra.accesswidener")
 }
 
 dependencies {

@@ -1,16 +1,5 @@
 {
-  "type": "travelersbackpack:backpack_shaped",
-  "key": {
-    "A": "minecraft:leather",
-    "B": "minecraft:lantern",
-    "C": "travelersbackpack:standard"
-  },
-  "pattern": [
-    "ABA",
-    "ACA",
-    "AAA"
-  ],
-  "result": {
-    "id": "tbextra:firewatch"
-  }
+  "type": "tbextra:reskin",
+  "skin": "firewatch",
+  "material": "minecraft:campfire"
 }

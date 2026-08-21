@@ -1,8 +1,0 @@
-{
-  "__comment": "Same as the Trinkets tag, for players running the Accessories mod instead.",
-  "replace": false,
-  "values": [
-    "tbextra:firewatch",
-    "tbextra:trapper"
-  ]
-}

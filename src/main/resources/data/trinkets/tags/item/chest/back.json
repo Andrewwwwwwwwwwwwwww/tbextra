@@ -1,8 +1,0 @@
-{
-  "__comment": "Traveler's Backpack routes wearing through the Trinkets back slot when trinkets_updated is present, and that slot only accepts items in this tag. It lists TB's own packs by name, so ours have to add themselves.",
-  "replace": false,
-  "values": [
-    "tbextra:firewatch",
-    "tbextra:trapper"
-  ]
-}

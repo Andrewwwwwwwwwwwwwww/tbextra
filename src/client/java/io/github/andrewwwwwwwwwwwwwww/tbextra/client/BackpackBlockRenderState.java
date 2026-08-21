@@ -4,9 +4,9 @@ import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.core.Direction;
 import org.jetbrains.annotations.Nullable;
 
-/** Carries which of our packs is at this position, and which way it faces. */
+/** Which skin a placed pack is wearing, if any, and which way it faces. */
 public class BackpackBlockRenderState extends BlockEntityRenderState {
     @Nullable
-    public BackpackVariant variant;
+    public String skin;
     public Direction facing = Direction.NORTH;
 }

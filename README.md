@@ -1,13 +1,26 @@
 # Traveler's Backpack Extras
 
-Adds new backpacks to [Traveler's Backpack](https://modrinth.com/mod/travelersbackpack) for
-Minecraft 26.2 (Fabric). Purely cosmetic additions: every pack uses Traveler's Backpack's own
-block, item, inventory, upgrades, tiers and UI. Only the model is new.
+Reskins for [Traveler's Backpack](https://modrinth.com/mod/travelersbackpack) on Minecraft
+26.2 (Fabric).
 
-| Backpack | Crafted from |
-| --- | --- |
-| Firewatch Backpack | Standard backpack + lantern + leather |
-| Trapper's Backpack | Standard backpack + iron ingot + leather |
+Craft any backpack into a new look. The pack you get back is *the same backpack* - same
+ability, same tier, same upgrades, same contents. Only its name and model change, so a
+bookshelf backpack reskinned as a Firewatch still does what a bookshelf backpack does.
+
+## Recipes
+
+Both are crafted from any Traveler's Backpack plus an empty bundle:
+
+| | | |
+| --- | --- | --- |
+| material | material | material |
+| material | any backpack | material |
+| material | empty bundle | material |
+
+- **Firewatch Backpack** - material is a campfire
+- **Trapper's Backpack** - material is an iron ingot
+
+Reskinning is one-way. For a pack with no ability, reskin a plain backpack.
 
 ## Requires
 
@@ -15,23 +28,27 @@ block, item, inventory, upgrades, tiers and UI. Only the model is new.
 - Fabric API
 - Traveler's Backpack 11.3.0+
 
-## How the models work
+## How it works
 
-Traveler's Backpack draws its own packs by painting a 64x64 texture onto one fixed shape, so
-new shapes cannot be added through it. It also cannot be done with vanilla model JSON: both of
-these packs hang sub-assemblies (a bear trap, antlers, straps, a shovel) at free angles on all
-three axes, and the vanilla format allows a single axis at fixed 22.5/45 degree steps.
+A reskin is a data component on Traveler's Backpack's own item. That matters: TB picks a
+pack's ability by item identity (`if (item == BOOKSHELF_TRAVELERS_BACKPACK)`), so a separate
+item could never keep the buff. Keeping the original item and changing only its presentation
+is what makes the ability survive.
 
-So the geometry is baked out of the Blockbench glTF export into a compact quad list
-(`tools/genquads.js` -> `assets/tbextra/geometry/*.bin`) and drawn directly, through a custom
-item model type for the item and a block entity renderer for placed packs. Because Traveler's
-Backpack renders the worn pack from the item model, wearing it works with no extra code.
+Rendering is intercepted rather than replaced. Traveler's Backpack draws its packs by
+painting a 64x64 texture onto one fixed shape, which cannot express new shapes, and neither
+can vanilla model JSON - both of these models hang sub-assemblies (a bear trap, antlers,
+straps, a shovel) at free angles on all three axes, while the format allows a single axis at
+fixed 22.5/45 degree steps. So the geometry is baked out of the Blockbench glTF export into a
+compact quad list (`tools/genquads.js` -> `assets/tbextra/geometry/*.bin`) and drawn directly.
 
-### Changing a model
+### Adding or changing a skin
 
 1. Re-export the `.gltf` from Blockbench.
 2. `node tools/genquads.js "<path to models folder>"`
-3. Rebuild.
+3. Add the skin id to `BackpackSkins`, a recipe under `data/tbextra/recipe/`, and a name in
+   the language file.
+4. Rebuild.
 
 `TARGET_HEIGHT_PX` at the top of `tools/genquads.js` sets how tall each pack stands
 (Traveler's Backpack's own pack is about 10px).
