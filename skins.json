@@ -1,12 +1,11 @@
 {
   "_comment": "Every skin the mod adds. To add one: drop its files in models/<id>/ (model.gltf, texture.png, and source.bbmodel for reference), add an entry here, then run: node tools/build-skins.js",
-
   "firewatch": {
     "name": "Firewatch Backpack",
     "material": "minecraft:campfire"
   },
   "trapper": {
     "name": "Trapper's Backpack",
-    "material": "minecraft:iron_ingot"
+    "material": "minecraft:iron_bars"
   }
 }
