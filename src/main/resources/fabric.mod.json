@@ -27,5 +27,8 @@
     "java": ">=25",
     "fabric-api": "*",
     "travelersbackpack": ">=11.3.0"
-  }
+  },
+  "mixins": [
+    "tbextra.mixins.json"
+  ]
 }

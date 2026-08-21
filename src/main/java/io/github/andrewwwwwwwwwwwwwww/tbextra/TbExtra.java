@@ -5,6 +5,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.ShapedRecipe;
 
 /**
  * Reskins for Traveler's Backpack.
@@ -16,7 +17,8 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 public class TbExtra implements ModInitializer {
     public static final String MODID = "tbextra";
 
-    public static RecipeSerializer<SkinRecipe> SKIN_RECIPE_SERIALIZER;
+    // Typed to ShapedRecipe because ShapedRecipe.getSerializer() is invariant.
+    public static RecipeSerializer<ShapedRecipe> SKIN_RECIPE_SERIALIZER;
 
     public static Identifier id(String path) {
         return Identifier.fromNamespaceAndPath(MODID, path);
@@ -26,7 +28,9 @@ public class TbExtra implements ModInitializer {
     public void onInitialize() {
         TbExtraComponents.init();
 
-        SKIN_RECIPE_SERIALIZER = Registry.register(BuiltInRegistries.RECIPE_SERIALIZER,
-                id("reskin"), new RecipeSerializer<>(SkinRecipe.CODEC, SkinRecipe.STREAM_CODEC));
+        SKIN_RECIPE_SERIALIZER = Registry.register(BuiltInRegistries.RECIPE_SERIALIZER, id("reskin"),
+                new RecipeSerializer<>(
+                        SkinRecipe.CODEC.xmap(recipe -> (ShapedRecipe) recipe, recipe -> (SkinRecipe) recipe),
+                        SkinRecipe.STREAM_CODEC.map(recipe -> (ShapedRecipe) recipe, recipe -> (SkinRecipe) recipe)));
     }
 }

@@ -1,5 +1,6 @@
 package io.github.andrewwwwwwwwwwwwwww.tbextra.client;
 
+import io.github.andrewwwwwwwwwwwwwww.tbextra.PlacedSkin;
 import net.fabricmc.fabric.api.client.model.loading.v1.wrapper.WrapperBlockStateModel;
 import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;

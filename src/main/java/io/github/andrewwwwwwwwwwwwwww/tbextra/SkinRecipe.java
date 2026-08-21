@@ -3,46 +3,53 @@ package io.github.andrewwwwwwwwwwwwwww.tbextra;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.BundleContents;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.PlacementInfo;
-import net.minecraft.world.item.crafting.RecipeBookCategories;
-import net.minecraft.world.item.crafting.RecipeBookCategory;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.ShapedRecipePattern;
 import net.minecraft.world.level.Level;
 
+import java.util.Map;
+
 /**
- * Reskins any Traveler's Backpack, keeping the pack itself intact.
- *
- * The grid is fixed:
+ * Reskins any Traveler's Backpack, keeping the pack itself intact:
  * <pre>
  *   M M M
  *   M B M     B = any Traveler's Backpack
  *   M U M     U = an empty bundle
  * </pre>
- * where M is the skin's material. The result is the very same backpack stack - same item,
- * same ability, same tier, same contents - with a skin and a new name applied.
+ * The result is the same backpack stack that went in - same item, ability, tier, upgrades
+ * and contents - with a skin and a new name applied.
+ *
+ * Extending {@link ShapedRecipe} rather than writing a recipe from scratch means the recipe
+ * book can show it and lay it out, which a fully custom recipe cannot do.
  */
-public record SkinRecipe(String skin, Ingredient material) implements CraftingRecipe {
+public class SkinRecipe extends ShapedRecipe {
     /** Traveler's Backpack tags all of its own packs here, so "any backpack" comes free. */
-    public static final TagKey<Item> ANY_BACKPACK = TagKey.create(
-            net.minecraft.core.registries.Registries.ITEM,
+    public static final TagKey<Item> ANY_BACKPACK = TagKey.create(Registries.ITEM,
             Identifier.fromNamespaceAndPath("travelersbackpack", "custom_travelers_backpack"));
+
+    private static final Identifier DISPLAY_BACKPACK =
+            Identifier.fromNamespaceAndPath("travelersbackpack", "standard");
 
     public static final MapCodec<SkinRecipe> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(
@@ -56,43 +63,55 @@ public record SkinRecipe(String skin, Ingredient material) implements CraftingRe
                     Ingredient.CONTENTS_STREAM_CODEC, SkinRecipe::material,
                     SkinRecipe::new);
 
+    private final String skin;
+    private final Ingredient material;
+
+    public SkinRecipe(String skin, Ingredient material) {
+        super(new Recipe.CommonInfo(true),
+                new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.EQUIPMENT,
+                        TbExtra.MODID + ":reskin"),
+                pattern(material),
+                displayResult(skin));
+        this.skin = skin;
+        this.material = material;
+    }
+
+    public String skin() {
+        return skin;
+    }
+
+    public Ingredient material() {
+        return material;
+    }
+
+    private static ShapedRecipePattern pattern(Ingredient material) {
+        return ShapedRecipePattern.of(Map.of(
+                'M', material,
+                'B', Ingredient.of(BuiltInRegistries.ITEM.getOrThrow(ANY_BACKPACK)),
+                'U', Ingredient.of(Items.BUNDLE)
+        ), "MMM", "MBM", "MUM");
+    }
+
+    /** What the recipe book shows: a plain backpack wearing the skin. */
+    private static ItemStackTemplate displayResult(String skin) {
+        Item backpack = BuiltInRegistries.ITEM.getValue(DISPLAY_BACKPACK);
+        return new ItemStackTemplate(backpack, DataComponentPatch.builder()
+                .set(TbExtraComponents.SKIN, skin)
+                .set(DataComponents.ITEM_NAME, Component.translatable(BackpackSkins.nameKey(skin)))
+                .build());
+    }
+
     @Override
     public boolean matches(CraftingInput input, Level level) {
-        if (input.width() != 3 || input.height() != 3) {
-            return false;
-        }
-        for (int column = 0; column < 3; column++) {
-            for (int row = 0; row < 3; row++) {
-                ItemStack stack = input.getItem(column, row);
-                boolean ok = switch (column * 10 + row) {
-                    case 11 -> isBackpack(stack);
-                    case 12 -> isEmptyBundle(stack);
-                    default -> material.test(stack);
-                };
-                if (!ok) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    private static boolean isBackpack(ItemStack stack) {
-        return stack.is(ANY_BACKPACK);
-    }
-
-    /** An empty bundle only - a full one would have its contents silently destroyed. */
-    private static boolean isEmptyBundle(ItemStack stack) {
-        if (!stack.is(Items.BUNDLE)) {
-            return false;
-        }
-        BundleContents contents = stack.get(DataComponents.BUNDLE_CONTENTS);
-        return contents == null || contents.isEmpty();
+        return super.matches(input, level) && findBundle(input) != null;
     }
 
     @Override
     public ItemStack assemble(CraftingInput input) {
-        ItemStack backpack = input.getItem(1, 1);
+        ItemStack backpack = findBackpack(input);
+        if (backpack == null) {
+            return ItemStack.EMPTY;
+        }
         // Copying the stack keeps the item and every component, so the pack's ability, tier,
         // upgrades and contents all survive. Only the look and the name change.
         ItemStack result = backpack.copy();
@@ -102,45 +121,28 @@ public record SkinRecipe(String skin, Ingredient material) implements CraftingRe
         return result;
     }
 
+    private static ItemStack findBackpack(CraftingInput input) {
+        for (ItemStack stack : input.items()) {
+            if (stack.is(ANY_BACKPACK)) {
+                return stack;
+            }
+        }
+        return null;
+    }
+
+    /** Only an empty bundle will do - a full one would have its contents destroyed. */
+    private static ItemStack findBundle(CraftingInput input) {
+        for (ItemStack stack : input.items()) {
+            if (stack.is(Items.BUNDLE)) {
+                BundleContents contents = stack.get(DataComponents.BUNDLE_CONTENTS);
+                return contents == null || contents.isEmpty() ? stack : null;
+            }
+        }
+        return null;
+    }
+
     @Override
-    public RecipeSerializer<? extends CraftingRecipe> getSerializer() {
+    public RecipeSerializer<ShapedRecipe> getSerializer() {
         return TbExtra.SKIN_RECIPE_SERIALIZER;
-    }
-
-    @Override
-    public RecipeType<CraftingRecipe> getType() {
-        return RecipeType.CRAFTING;
-    }
-
-    @Override
-    public CraftingBookCategory category() {
-        return CraftingBookCategory.EQUIPMENT;
-    }
-
-    @Override
-    public RecipeBookCategory recipeBookCategory() {
-        return RecipeBookCategories.CRAFTING_EQUIPMENT;
-    }
-
-    @Override
-    public PlacementInfo placementInfo() {
-        // "Any backpack" cannot be expressed as a fixed ingredient list, so the recipe book
-        // cannot auto-fill this one.
-        return PlacementInfo.NOT_PLACEABLE;
-    }
-
-    @Override
-    public boolean showNotification() {
-        return true;
-    }
-
-    @Override
-    public String group() {
-        return TbExtra.MODID + ":reskin";
-    }
-
-    @Override
-    public boolean isSpecial() {
-        return true;
     }
 }

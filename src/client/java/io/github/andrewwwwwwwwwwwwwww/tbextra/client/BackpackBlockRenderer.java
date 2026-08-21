@@ -1,5 +1,6 @@
 package io.github.andrewwwwwwwwwwwwwww.tbextra.client;
 
+import io.github.andrewwwwwwwwwwwwwww.tbextra.PlacedSkin;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.tiviacz.travelersbackpack.block.TravelersBackpackBlock;
@@ -48,14 +49,18 @@ public class BackpackBlockRenderer
             return; // an ordinary Traveler's Backpack - not ours to draw
         }
 
-        BackpackSpecialRenderer renderer = SkinPresentation.of(skin).blockRenderer();
+        BackpackVariant variant = SkinPresentation.of(skin).variant();
         int light = state.lightCoords;
 
         poseStack.pushPose();
+        // The geometry is centred on X/Z around the origin and stands on y=0, so move to the
+        // middle of the block first and turn about that centre - rotating first would swing
+        // the pack out to a corner.
+        poseStack.translate(0.5F, 0.0F, 0.5F);
         poseStack.mulPose(Axis.YP.rotationDegrees(-state.facing.toYRot()));
         collector.submitCustomGeometry(poseStack,
-                RenderTypes.entityCutout(renderer.variant().texture()),
-                (pose, consumer) -> renderer.variant().geometry()
+                RenderTypes.entityCutout(variant.texture()),
+                (pose, consumer) -> variant.geometry()
                         .emit(pose, consumer, light, OverlayTexture.NO_OVERLAY));
         poseStack.popPose();
     }

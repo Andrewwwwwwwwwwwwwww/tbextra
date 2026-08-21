@@ -1,26 +1,23 @@
-package io.github.andrewwwwwwwwwwwwwww.tbextra.client;
+package io.github.andrewwwwwwwwwwwwwww.tbextra;
 
 import com.tiviacz.travelersbackpack.blockentity.BackpackBlockEntity;
-import io.github.andrewwwwwwwwwwwwwww.tbextra.BackpackSkins;
-import io.github.andrewwwwwwwwwwwwwww.tbextra.TbExtraComponents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
 
-/** Reads the skin off a placed backpack, if it has one. */
+/**
+ * Reads the skin off a placed backpack. Common code: the client needs it to draw the pack,
+ * and the server needs it to give the pack the right collision shape.
+ */
 public final class PlacedSkin {
     private PlacedSkin() {
     }
 
     @Nullable
     public static String at(@Nullable BlockGetter level, BlockPos pos) {
-        if (level == null) {
-            return null;
-        }
-        BlockEntity blockEntity = level.getBlockEntity(pos);
-        return of(blockEntity);
+        return level == null ? null : of(level.getBlockEntity(pos));
     }
 
     @Nullable

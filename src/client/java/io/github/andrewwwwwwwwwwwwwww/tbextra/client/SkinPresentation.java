@@ -24,8 +24,8 @@ public final class SkinPresentation {
 
     private static final Map<String, SkinPresentation> CACHE = new ConcurrentHashMap<>();
 
+    private final BackpackVariant variant;
     private final BackpackSpecialRenderer itemRenderer;
-    private final BackpackSpecialRenderer blockRenderer;
     private final ItemTransforms transforms;
 
     private SkinPresentation(String skin) {
@@ -33,8 +33,8 @@ public final class SkinPresentation {
         BackpackVariant variant = BackpackVariant.of(skin);
         float drop = (bounds.height() - REFERENCE_HEIGHT) / 2.0F;
 
+        this.variant = variant;
         this.itemRenderer = new BackpackSpecialRenderer(variant, new Vector3f(0.5F, -drop, 0.5F));
-        this.blockRenderer = new BackpackSpecialRenderer(variant, new Vector3f(0.5F, 0.0F, 0.5F));
         this.transforms = createTransforms(REFERENCE_EDGE / bounds.longestEdge());
     }
 
@@ -46,8 +46,8 @@ public final class SkinPresentation {
         return itemRenderer;
     }
 
-    public BackpackSpecialRenderer blockRenderer() {
-        return blockRenderer;
+    public BackpackVariant variant() {
+        return variant;
     }
 
     public ItemTransforms transforms() {
