@@ -6,13 +6,11 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
@@ -71,8 +69,9 @@ public class SkinRecipe extends ShapedRecipe {
 
     public SkinRecipe(String skin, Ingredient material, Ingredient backpack) {
         super(new Recipe.CommonInfo(true),
-                new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.EQUIPMENT,
-                        TbExtra.MODID + ":reskin"),
+                // No group: recipes sharing one are collapsed into a single cycling
+                // entry in the recipe book, which reads as a glitch for separate skins.
+                new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.EQUIPMENT, ""),
                 pattern(material, backpack),
                 displayResult(skin));
         this.skin = skin;

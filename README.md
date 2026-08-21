@@ -42,15 +42,27 @@ straps, a shovel) at free angles on all three axes, while the format allows a si
 fixed 22.5/45 degree steps. So the geometry is baked out of the Blockbench glTF export into a
 compact quad list (`tools/genquads.js` -> `assets/tbextra/geometry/*.bin`) and drawn directly.
 
-### Adding or changing a skin
+### Adding a skin
 
-1. Re-export the `.gltf` from Blockbench.
-2. `node tools/genquads.js "<path to models folder>"`
-3. Add the skin id to `BackpackSkins`, a recipe under `data/tbextra/recipe/`, and a name in
-   the language file.
-4. Rebuild.
+1. Put the artist's files in `models/<id>/` - the `.gltf` export, the `.png` texture, and
+   the `.bbmodel` alongside them for reference.
+2. Add an entry to `skins.json`:
 
-`TARGET_HEIGHT_PX` at the top of `tools/genquads.js` sets how tall each pack stands
+   ```json
+   "mushroom": {
+     "name": "Mushroom Backpack",
+     "material": "minecraft:red_mushroom"
+   }
+   ```
+
+3. `node tools/build-skins.js`
+4. `gradlew build`
+
+That regenerates the geometry, texture, display name, recipe and the two generated Java
+files. Nothing else needs editing by hand. The generator refuses to continue if a model
+is missing, is mapped outside its texture, or has faces wound inside out.
+
+`TARGET_HEIGHT_PX` at the top of `tools/build-skins.js` sets how tall every pack stands
 (Traveler's Backpack's own pack is about 10px).
 
 ## Building
