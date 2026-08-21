@@ -40,12 +40,13 @@ painting a 64x64 texture onto one fixed shape, which cannot express new shapes, 
 can vanilla model JSON - both of these models hang sub-assemblies (a bear trap, antlers,
 straps, a shovel) at free angles on all three axes, while the format allows a single axis at
 fixed 22.5/45 degree steps. So the geometry is baked out of the Blockbench glTF export into a
-compact quad list (`tools/genquads.js` -> `assets/tbextra/geometry/*.bin`) and drawn directly.
+compact quad list (`tools/build-skins.js` -> `assets/tbextra/geometry/*.bin`) and drawn directly.
 
 ### Adding a skin
 
 1. Put the artist's files in `models/<id>/` - the `.gltf` export, the `.png` texture, and
-   the `.bbmodel` alongside them for reference.
+   the `.bbmodel` alongside them for reference. Filenames do not matter; the id is the
+   folder name, lowercase.
 2. Add an entry to `skins.json`:
 
    ```json
@@ -58,12 +59,38 @@ compact quad list (`tools/genquads.js` -> `assets/tbextra/geometry/*.bin`) and d
 3. `node tools/build-skins.js`
 4. `gradlew build`
 
-That regenerates the geometry, texture, display name, recipe and the two generated Java
-files. Nothing else needs editing by hand. The generator refuses to continue if a model
-is missing, is mapped outside its texture, or has faces wound inside out.
+That regenerates the geometry, texture, display name, recipe and both generated Java files.
+Nothing else is edited by hand, and removing a skin is the reverse: delete the folder and the
+entry, re-run, and its leftovers are cleaned up.
 
-`TARGET_HEIGHT_PX` at the top of `tools/build-skins.js` sets how tall every pack stands
-(Traveler's Backpack's own pack is about 10px).
+**Fields**
+
+| field | required | meaning |
+| --- | --- | --- |
+| `name` | yes | what the reskinned pack is called in game |
+| `material` | yes | the item filling the other eight slots of the recipe. An item id, or a tag like `#minecraft:logs` |
+| `height` | no | how tall the pack stands, in pixels. Defaults to 14; Traveler's Backpack's own pack is about 10 |
+
+**What the generator checks**
+
+It stops and tells you if a model is missing, if a folder holds two `.gltf`s, if a face is
+mapped outside its texture, if faces are wound inside out, or if `material` is not a valid
+item or tag id. It warns, without stopping, about a folder in `models/` that no `skins.json`
+entry claims - the easy mistake when dropping new art in.
+
+The one thing it cannot check is whether the item id in `material` actually exists, since
+that is only known when the game loads. A typo there shows up as a recipe that never appears.
+
+**Changing every pack's size at once**
+
+`DEFAULT_HEIGHT_PX` at the top of `tools/build-skins.js` sets the height for skins that do
+not specify their own.
+
+**The recipe shape is fixed**
+
+Every skin uses the same grid - eight of the material around any backpack, with an empty
+bundle beneath it. Only the material varies. A skin needing a different layout would need a
+change to `SkinRecipe`.
 
 ## Building
 

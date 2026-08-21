@@ -1,5 +1,6 @@
 {
   "_comment": "Every skin the mod adds. To add one: drop its files in models/<id>/ (model.gltf, texture.png, and source.bbmodel for reference), add an entry here, then run: node tools/build-skins.js",
+  "_fields": "name = shown in game. material = the item that surrounds the backpack in the recipe; an item id or a #tag. height = optional, how tall the pack stands in pixels (default 14).",
   "firewatch": {
     "name": "Firewatch Backpack",
     "material": "minecraft:campfire"

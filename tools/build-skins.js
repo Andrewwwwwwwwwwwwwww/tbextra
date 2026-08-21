@@ -14,9 +14,10 @@ const fs = require('fs');
 const path = require('path');
 const { readGltf } = require('./gltfread.js');
 
-// Each pack is scaled to stand this tall. Traveler's Backpack's own pack is about 10px;
-// these are larger hiking packs. Change this and re-run to resize every skin at once.
-const TARGET_HEIGHT_PX = 14;
+// How tall a pack stands, in pixels, unless its skins.json entry overrides it with
+// "height". Traveler's Backpack's own pack is about 10px; these are larger hiking packs.
+// Change this to resize every skin that has not set its own height.
+const DEFAULT_HEIGHT_PX = 14;
 
 const ROOT = path.join(__dirname, '..');
 const MODELS = path.join(ROOT, 'models');
@@ -64,6 +65,17 @@ const bounds = [];
 const names = {};
 let warnings = 0;
 
+// Dropping a folder in and forgetting to declare it is the easy mistake to make, and it
+// would otherwise pass silently.
+if (fs.existsSync(MODELS)) {
+  for (const entry of fs.readdirSync(MODELS, { withFileTypes: true })) {
+    if (entry.isDirectory() && !skins.includes(entry.name)) {
+      console.warn('  note: models/' + entry.name + '/ is not listed in skins.json, so it is being ignored');
+      warnings++;
+    }
+  }
+}
+
 for (const id of skins) {
   const entry = manifest[id];
 
@@ -71,9 +83,15 @@ for (const id of skins) {
     fail('skin id "' + id + '" must be lowercase letters, digits or underscores');
   }
   for (const field of ['name', 'material']) {
-    if (!entry[field]) {
-      fail('skin "' + id + '" is missing "' + field + '" in skins.json');
+    if (typeof entry[field] !== 'string' || entry[field].trim() === '') {
+      fail('skin "' + id + '" needs a non-empty "' + field + '" in skins.json');
     }
+  }
+  // The item or tag itself is only resolved when the game loads the recipe, so a typo here
+  // surfaces as a recipe that quietly never appears. Catch the shape of it at least.
+  if (!/^#?[a-z0-9_.-]+:[a-z0-9_./-]+$/.test(entry.material)) {
+    fail('skin "' + id + '": "material" should look like "minecraft:campfire" or a tag '
+      + 'like "#minecraft:logs", got "' + entry.material + '"');
   }
 
   const dir = path.join(MODELS, id);
@@ -135,8 +153,12 @@ for (const id of skins) {
     Math.min(...points.map(p => p[axis])),
     Math.max(...points.map(p => p[axis]))
   ]);
+  const targetHeight = entry.height === undefined ? DEFAULT_HEIGHT_PX : entry.height;
+  if (typeof targetHeight !== 'number' || !(targetHeight > 0)) {
+    fail('skin "' + id + '": "height" in skins.json must be a positive number of pixels');
+  }
   const heightPx = (extent[1][1] - extent[1][0]) * 16;
-  const scale = TARGET_HEIGHT_PX / heightPx;
+  const scale = targetHeight / heightPx;
   const centreX = (extent[0][0] + extent[0][1]) / 2;
   const centreZ = (extent[2][0] + extent[2][1]) / 2;
   const floorY = extent[1][0];
@@ -192,7 +214,7 @@ for (const id of skins) {
   const depth = (extent[2][1] - extent[2][0]) * 16 * scale;
   console.log(
     id.padEnd(14) + String(quads.length).padStart(4) + ' quads   ' +
-    width.toFixed(1) + ' x ' + TARGET_HEIGHT_PX + ' x ' + depth.toFixed(1) + ' px   ' +
+    width.toFixed(1) + ' x ' + targetHeight + ' x ' + depth.toFixed(1) + ' px   ' +
     '"' + entry.name + '"  from ' + entry.material
   );
 }
