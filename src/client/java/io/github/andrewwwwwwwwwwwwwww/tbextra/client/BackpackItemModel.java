@@ -28,17 +28,33 @@ public class BackpackItemModel implements ItemModel {
      */
     private static final float REFERENCE_EDGE = 0.875F;
 
+    /**
+     * Height of Traveler's Backpack's own pack, in blocks (10.1px). Its display transforms
+     * are tuned for a pack that tall, so a taller pack has to be seated lower by half the
+     * difference to sit where players expect - on the back and in the inventory alike.
+     */
+    private static final float REFERENCE_HEIGHT = 10.1F / 16.0F;
+
+    private final String backpack;
     private final BackpackSpecialRenderer renderer;
     private final ItemTransforms transforms;
 
     public BackpackItemModel(BackpackVariant variant, String backpack) {
-        this.renderer = new BackpackSpecialRenderer(variant);
-        this.transforms = createTransforms(REFERENCE_EDGE / BackpackBounds.of(backpack).longestEdge());
+        BackpackBounds.Bounds bounds = BackpackBounds.of(backpack);
+        float drop = (bounds.height() - REFERENCE_HEIGHT) / 2.0F;
+
+        this.backpack = backpack;
+        this.renderer = new BackpackSpecialRenderer(variant, new Vector3f(0.5F, -drop, 0.5F));
+        this.transforms = createTransforms(REFERENCE_EDGE / bounds.longestEdge());
     }
 
     @Override
     public void update(ItemStackRenderState state, ItemStack stack, ItemModelResolver resolver,
                        ItemDisplayContext context, ClientLevel level, ItemOwner owner, int seed) {
+        // Without this the render state cache cannot tell our packs apart, and whichever
+        // was cached first is drawn for both.
+        state.appendModelIdentityElement(backpack);
+
         ItemStackRenderState.LayerRenderState layer = state.newLayer();
         layer.setUsesBlockLight(true);
         // getTransform returns NO_TRANSFORM for ItemDisplayContext.NONE, which is what

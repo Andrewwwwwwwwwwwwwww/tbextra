@@ -1,6 +1,12 @@
 # Changelog
 
 ## 1.0.0 - 2026-08-20
+- Fixed Trapper's Backpack drawing the Firewatch model in the inventory. The item render
+  state cache had nothing to tell the two packs apart, so whichever was cached first was
+  reused for both.
+- Packs now sit about 2px lower on the back and centre correctly in the inventory. Traveler's
+  Backpack's display transforms are tuned for a 10.1px-tall pack; ours are 14px, so each is
+  seated lower by half the difference.
 - Each pack now has its own collision shape derived from its model, instead of reusing
   Traveler's Backpack's one-size box. The shape rotates with the block and is clamped to
   the block it sits on, so a pack that overhangs visually still has a sane hitbox.
