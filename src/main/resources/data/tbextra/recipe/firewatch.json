@@ -1,5 +1,6 @@
 {
   "type": "tbextra:reskin",
   "skin": "firewatch",
-  "material": "minecraft:campfire"
+  "material": "minecraft:campfire",
+  "backpack": "#travelersbackpack:custom_travelers_backpack"
 }

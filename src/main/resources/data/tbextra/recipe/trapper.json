@@ -1,5 +1,6 @@
 {
   "type": "tbextra:reskin",
   "skin": "trapper",
-  "material": "minecraft:iron_ingot"
+  "material": "minecraft:iron_ingot",
+  "backpack": "#travelersbackpack:custom_travelers_backpack"
 }

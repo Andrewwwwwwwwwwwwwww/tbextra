@@ -44,9 +44,9 @@ import java.util.Map;
  * book can show it and lay it out, which a fully custom recipe cannot do.
  */
 public class SkinRecipe extends ShapedRecipe {
-    /** Traveler's Backpack tags all of its own packs here, so "any backpack" comes free. */
-    public static final TagKey<Item> ANY_BACKPACK = TagKey.create(Registries.ITEM,
-            Identifier.fromNamespaceAndPath("travelersbackpack", "custom_travelers_backpack"));
+    private static final char MATERIAL = 'M';
+    private static final char BACKPACK = 'B';
+    private static final char BUNDLE = 'U';
 
     private static final Identifier DISPLAY_BACKPACK =
             Identifier.fromNamespaceAndPath("travelersbackpack", "standard");
@@ -54,26 +54,30 @@ public class SkinRecipe extends ShapedRecipe {
     public static final MapCodec<SkinRecipe> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(
                     Codec.STRING.fieldOf("skin").forGetter(SkinRecipe::skin),
-                    Ingredient.CODEC.fieldOf("material").forGetter(SkinRecipe::material)
+                    Ingredient.CODEC.fieldOf("material").forGetter(SkinRecipe::material),
+                    Ingredient.CODEC.fieldOf("backpack").forGetter(SkinRecipe::backpack)
             ).apply(instance, SkinRecipe::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, SkinRecipe> STREAM_CODEC =
             StreamCodec.composite(
                     ByteBufCodecs.STRING_UTF8, SkinRecipe::skin,
                     Ingredient.CONTENTS_STREAM_CODEC, SkinRecipe::material,
+                    Ingredient.CONTENTS_STREAM_CODEC, SkinRecipe::backpack,
                     SkinRecipe::new);
 
     private final String skin;
     private final Ingredient material;
+    private final Ingredient backpack;
 
-    public SkinRecipe(String skin, Ingredient material) {
+    public SkinRecipe(String skin, Ingredient material, Ingredient backpack) {
         super(new Recipe.CommonInfo(true),
                 new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.EQUIPMENT,
                         TbExtra.MODID + ":reskin"),
-                pattern(material),
+                pattern(material, backpack),
                 displayResult(skin));
         this.skin = skin;
         this.material = material;
+        this.backpack = backpack;
     }
 
     public String skin() {
@@ -84,11 +88,19 @@ public class SkinRecipe extends ShapedRecipe {
         return material;
     }
 
-    private static ShapedRecipePattern pattern(Ingredient material) {
+    public Ingredient backpack() {
+        return backpack;
+    }
+
+    /**
+     * The backpack slot is supplied by the recipe file rather than built here. Recipes are
+     * decoded before tags are bound, so resolving the tag in this constructor throws.
+     */
+    private static ShapedRecipePattern pattern(Ingredient material, Ingredient backpack) {
         return ShapedRecipePattern.of(Map.of(
-                'M', material,
-                'B', Ingredient.of(BuiltInRegistries.ITEM.getOrThrow(ANY_BACKPACK)),
-                'U', Ingredient.of(Items.BUNDLE)
+                Character.valueOf(MATERIAL), material,
+                Character.valueOf(BACKPACK), backpack,
+                Character.valueOf(BUNDLE), Ingredient.of(Items.BUNDLE)
         ), "MMM", "MBM", "MUM");
     }
 
@@ -121,9 +133,9 @@ public class SkinRecipe extends ShapedRecipe {
         return result;
     }
 
-    private static ItemStack findBackpack(CraftingInput input) {
+    private ItemStack findBackpack(CraftingInput input) {
         for (ItemStack stack : input.items()) {
-            if (stack.is(ANY_BACKPACK)) {
+            if (!stack.isEmpty() && backpack.test(stack)) {
                 return stack;
             }
         }
