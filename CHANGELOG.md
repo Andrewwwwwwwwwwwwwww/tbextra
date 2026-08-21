@@ -1,6 +1,9 @@
 # Changelog
 
 ## 1.0.0 - 2026-08-20
+- Fixed the packs not being wearable alongside Trinkets or Accessories. Traveler's Backpack
+  routes wearing through a back slot when those mods are present, and the slot only accepts
+  items listed in its tag. Our packs now add themselves to it.
 - Fixed Trapper's Backpack drawing the Firewatch model in the inventory. The item render
   state cache had nothing to tell the two packs apart, so whichever was cached first was
   reused for both.
