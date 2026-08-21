@@ -98,5 +98,6 @@ change to `SkinRecipe`.
 ./gradlew build
 ```
 
-`libs/travelersbackpack-fabric-26.2-11.3.1.jar` is vendored for compilation only; it is not
-bundled into the output jar.
+`libs/travelersbackpack-fabric-26.2-11.3.1.jar` is vendored to compile against and is not
+bundled into the output jar. It is not committed either - download it from Modrinth into
+`libs/` to build.

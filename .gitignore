@@ -39,6 +39,6 @@ replay_*.log
 *.hprof
 *.jfr
 
-# Traveler's Backpack is All Rights Reserved - vendored locally for compilation only,
-# never committed or redistributed. Download it from Modrinth into libs/ to build.
+# Traveler's Backpack, vendored locally to compile against. Kept out of the repo to avoid
+# carrying another project's jar around; download it from Modrinth into libs/ to build.
 libs/
