@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1 - 2026-08-21
+
+- Each skin now appears in the Traveler's Backpack creative tab, and so in JEI and REI,
+  which build their item lists from the creative tabs. Previously a skin could only be
+  obtained by crafting one.
+
 ## 1.0.0 - 2026-08-21
 
 First release.

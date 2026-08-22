@@ -1,6 +1,12 @@
 package io.github.andrewwwwwwwwwwwwwww.tbextra;
 
+import com.tiviacz.travelersbackpack.init.ModBlocks;
+import com.tiviacz.travelersbackpack.init.ModItemGroups;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
@@ -32,5 +38,32 @@ public class TbExtra implements ModInitializer {
                 new RecipeSerializer<>(
                         SkinRecipe.CODEC.xmap(recipe -> (ShapedRecipe) recipe, recipe -> (SkinRecipe) recipe),
                         SkinRecipe.STREAM_CODEC.map(recipe -> (ShapedRecipe) recipe, recipe -> (SkinRecipe) recipe)));
+
+        // The mod registers no items, so without this a skin is only ever obtainable by
+        // crafting and never appears in creative or in a recipe viewer's item list. Both
+        // JEI and REI build that list from the creative tabs.
+        CreativeModeTabEvents.modifyOutputEvent(ModItemGroups.TRAVELERS_BACKPACK).register(output -> {
+            for (String skin : BackpackSkins.ALL) {
+                ItemStack showcase = showcase(skin);
+                if (!showcase.isEmpty()) {
+                    output.accept(showcase);
+                }
+            }
+        });
+    }
+
+    /**
+     * A skin shown on a plain backpack, matching how the recipe book previews it. Built when
+     * the tab is filled rather than at init, because Traveler's Backpack registers its blocks
+     * in its own entrypoint and ours may run first.
+     */
+    private static ItemStack showcase(String skin) {
+        if (ModBlocks.STANDARD_TRAVELERS_BACKPACK == null) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack stack = ModItemGroups.withTanks(ModBlocks.STANDARD_TRAVELERS_BACKPACK);
+        stack.set(TbExtraComponents.SKIN, skin);
+        stack.set(DataComponents.ITEM_NAME, Component.translatable(BackpackSkins.nameKey(skin)));
+        return stack;
     }
 }
