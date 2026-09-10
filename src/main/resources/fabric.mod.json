@@ -12,6 +12,7 @@
     "sources": "https://github.com/Andrewwwwwwwwwwwwwww/tbextra"
   },
   "license": "ARR",
+  "icon": "assets/tbextra/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
