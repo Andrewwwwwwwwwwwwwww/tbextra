@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.2 - 2026-10-25
+
+- Updated to Minecraft 26.3. Requires Fabric Loader 0.20.1+ and Traveler's Backpack
+  11.4.0+ for 26.3.
+
 ## 1.0.1 - 2026-08-21
 
 - Each skin now appears in the Traveler's Backpack creative tab, and so in JEI and REI,

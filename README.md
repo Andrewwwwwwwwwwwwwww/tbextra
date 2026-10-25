@@ -1,7 +1,7 @@
 # Traveler's Backpack Extras
 
 Reskins for [Traveler's Backpack](https://modrinth.com/mod/travelersbackpack) on Minecraft
-26.2 (Fabric).
+26.3 (Fabric).
 
 Craft any backpack into a new look. The pack you get back is *the same backpack* - same
 ability, same tier, same upgrades, same contents. Only its name and model change, so a
@@ -24,9 +24,9 @@ Reskinning is one-way. For a pack with no ability, reskin a plain backpack.
 
 ## Requires
 
-- Minecraft 26.2, Fabric Loader 0.19.3+
+- Minecraft 26.3, Fabric Loader 0.20.1+
 - Fabric API
-- Traveler's Backpack 11.3.0+
+- Traveler's Backpack 11.4.0+
 
 ## How it works
 

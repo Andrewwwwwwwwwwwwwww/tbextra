@@ -57,7 +57,7 @@ public class BackpackBlockRenderer
         // middle of the block first and turn about that centre - rotating first would swing
         // the pack out to a corner.
         poseStack.translate(0.5F, 0.0F, 0.5F);
-        poseStack.mulPose(Axis.YP.rotationDegrees(-state.facing.toYRot()));
+        poseStack.rotateDegrees(Axis.YP, -state.facing.toYRot());
         collector.submitCustomGeometry(poseStack,
                 RenderTypes.entityCutout(variant.texture()),
                 (pose, consumer) -> variant.geometry()
